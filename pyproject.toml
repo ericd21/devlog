@@ -12,6 +12,9 @@ dependencies = [
 dev = [
     "pytest",
 ]
+client = [
+    "httpx",
+]
 
 [build-system]
 requires = ["setuptools>=68"]
