@@ -103,7 +103,10 @@ async def repl(
 ) -> None:
     """Read user input from the terminal and drive chat_round until exit/quit."""
     messages = [{"role": "system", "content": system_prompt}] if system_prompt else []
-    print(f"Connected. {len(tools)} DevLog tools available. Type 'exit' to quit.")
+    print(
+        f"Connected. {len(tools)} DevLog tools available. "
+        "Type 'tools' to see available tools. Type 'exit' to quit."
+    )
     while True:
         try:
             user_input = input("you> ").strip()
@@ -113,6 +116,11 @@ async def repl(
             continue
         if user_input in ("exit", "quit"):
             break
+        if user_input == "tools":
+            for tool in tools:
+                function = tool["function"]
+                print(f"  {function['name']}: {function['description']}")
+            continue
         messages.append({"role": "user", "content": user_input})
         await chat_round(http_client, session, base_url, model, messages, tools)
 
