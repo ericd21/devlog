@@ -93,6 +93,48 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
 Restart Claude Desktop. You should see DevLog's tools, resources, and
 prompts available in the conversation.
 
+### Connect it to a local or self-hosted LLM
+
+`client.py` is a small standalone MCP client that spawns `server.py` over
+stdio and drives it from any OpenAI-compatible chat-completions backend —
+llama.cpp's `llama-server`, Ollama, vLLM, or OpenAI's own API. It's the
+tool-calling loop that Claude Desktop/Code provide for you, made explicit,
+so DevLog isn't limited to Anthropic's clients.
+
+Install the extra dependency (`httpx`) it needs:
+
+```bash
+pip install -e ".[client]"
+```
+
+Then, with a backend already running — e.g. llama.cpp:
+
+```bash
+llama-server --jinja -m qwen2.5-7b-instruct-q4_k_m.gguf --port 8080
+python client.py --model qwen2.5-7b-instruct
+```
+
+or against OpenAI's API:
+
+```bash
+python client.py --base-url https://api.openai.com/v1 --model gpt-4o --api-key sk-...
+```
+
+This starts a REPL:
+
+```
+Connected. 3 DevLog tools available. Type 'tools' to see available tools. Type 'exit' to quit.
+you> show the latest git activity for this repo
+```
+
+`--base-url` defaults to `http://127.0.0.1:8080/v1` (llama.cpp's default);
+`--api-key` is only needed for backends that require one. Tool-calling
+reliability depends on the model — it needs to support structured function
+calling (Qwen2.5-Instruct and Llama 3.1 do; not every local model does),
+and small models are more likely to guess at arguments (e.g. a placeholder
+file path) instead of asking a clarifying question, which Claude tends to
+do more reliably.
+
 ### Inspect it directly
 
 The official MCP Inspector is the fastest way to poke at the server without
@@ -128,6 +170,7 @@ Blockers:
 ```
 devlog/
 ├── server.py              # MCP server entrypoint — registers tools/resources/prompts
+├── client.py              # standalone MCP client for local/self-hosted LLM backends
 ├── devlog/
 │   ├── db.py               # all SQLite access
 │   ├── git_activity.py     # git log parsing
